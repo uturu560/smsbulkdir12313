@@ -4,7 +4,7 @@
   function getPreferred() {
     var stored = localStorage.getItem(STORAGE_KEY);
     if (stored === "dark" || stored === "light") return stored;
-    if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) return "dark";
+    // Always default to light mode on first visit
     return "light";
   }
 

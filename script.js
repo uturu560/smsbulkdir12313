@@ -847,6 +847,68 @@ function initQuiz() {
 
 // ——— Init ———
 document.addEventListener("DOMContentLoaded", function () {
+  // #region agent log
+  function __logResponsive(hypothesisId, message, data) {
+    try {
+      fetch('http://127.0.0.1:7746/ingest/051269bc-2b50-4e7c-99f2-e4e050e46166', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': '1066cb' },
+        body: JSON.stringify({
+          sessionId: '1066cb',
+          runId: 'responsive-check',
+          hypothesisId: hypothesisId,
+          location: 'script.js:DOMContentLoaded',
+          message: message,
+          data: data || {},
+          timestamp: Date.now()
+        })
+      }).catch(function () {});
+    } catch (e) {}
+  }
+
+  function __scanOverflow() {
+    var docEl = document.documentElement;
+    var body = document.body;
+    var overflows = [];
+    var candidates = [
+      { name: 'documentElement', el: docEl },
+      { name: 'body', el: body },
+      { name: '.navbar', el: document.querySelector('.navbar') },
+      { name: '.main', el: document.querySelector('.main') },
+      { name: '.featured-card', el: document.querySelector('.featured-card') },
+      { name: '.compare-table-wrap', el: document.querySelector('.compare-table-wrap') },
+      { name: '.platform-content-layout', el: document.querySelector('.platform-content-layout') }
+    ];
+    candidates.forEach(function (c) {
+      if (!c.el) return;
+      var sw = c.el.scrollWidth || 0;
+      var cw = c.el.clientWidth || 0;
+      if (sw > cw + 2) {
+        overflows.push({ name: c.name, scrollWidth: sw, clientWidth: cw });
+      }
+    });
+    __logResponsive(
+      'H1_overflow',
+      'responsive overflow scan',
+      {
+        path: location && location.pathname ? location.pathname : '',
+        innerWidth: window.innerWidth,
+        innerHeight: window.innerHeight,
+        docClientWidth: docEl ? docEl.clientWidth : null,
+        docScrollWidth: docEl ? docEl.scrollWidth : null,
+        overflowCount: overflows.length,
+        overflows: overflows.slice(0, 6)
+      }
+    );
+  }
+  // #endregion
+
+  __logResponsive('H2_viewport', 'responsive init', { path: location.pathname, innerWidth: window.innerWidth, innerHeight: window.innerHeight });
+  __scanOverflow();
+  window.addEventListener('resize', function () {
+    __scanOverflow();
+  });
+
   if (document.getElementById("platform-cards")) {
     renderPlatformCards(platforms);
     initHomeFilters();
