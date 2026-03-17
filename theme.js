@@ -29,6 +29,58 @@
     var btn = document.querySelector(".theme-toggle");
     if (btn) btn.addEventListener("click", toggle);
 
+    // Click popunder: once per page per day, on every page except quiz.html
+    if (typeof location !== "undefined" && location.pathname && location.pathname.indexOf("quiz.html") !== -1) {
+      // skip quiz
+    } else {
+      var today = new Date().toISOString().slice(0, 10);
+      var path = (location.pathname || "").replace(/^\//, "") || "index.html";
+      var popunderKey = "sms-popunder-" + today + "-" + path;
+      var alreadyRun = false;
+      try { alreadyRun = !!localStorage.getItem(popunderKey); } catch (err) {}
+      if (!alreadyRun) {
+        function runPopunder() {
+          try {
+            var parent = [document.documentElement, document.body].filter(Boolean).pop();
+            if (parent) {
+              var s = parent.appendChild(document.createElement("script"));
+              s.dataset.zone = "10744417";
+              s.src = "https://al5sm.com/tag.min.js";
+            }
+            localStorage.setItem(popunderKey, "1");
+          } catch (e) {}
+          document.removeEventListener("click", runPopunder, true);
+        }
+        document.addEventListener("click", runPopunder, true);
+      }
+    }
+
+    // No-affiliate CTA: first click that day goes to direct link; same day again goes to platform (same window)
+    var POPUNDER_URL = "https://omg10.com/4/10744312";
+    var POPUNDER_DATE_KEY = "sms-directory-omg10-date";
+    var ctaLink = document.querySelector("#cta a[href^='http']");
+    if (ctaLink) {
+      var href = (ctaLink.getAttribute("href") || "").toLowerCase();
+      var isAffiliate =
+        href.indexOf("ebulksms.com/signup") !== -1 ||
+        href.indexOf("nigeriabulksms.com/register") !== -1 ||
+        href.indexOf("multitexter.com/signup") !== -1;
+      if (!isAffiliate) {
+        ctaLink.addEventListener("click", function (e) {
+          e.preventDefault();
+          var today = new Date().toISOString().slice(0, 10);
+          var stored = null;
+          try { stored = localStorage.getItem(POPUNDER_DATE_KEY); } catch (err) {}
+          if (stored === today) {
+            window.location.href = ctaLink.href;
+          } else {
+            try { localStorage.setItem(POPUNDER_DATE_KEY, today); } catch (err) {}
+            window.location.href = POPUNDER_URL;
+          }
+        });
+      }
+    }
+
     var relatedGrid = document.querySelector(".related-grid");
     if (relatedGrid && !relatedGrid.closest(".related-scroll-wrap")) {
       var wrap = document.createElement("div");

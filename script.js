@@ -1,5 +1,9 @@
 // Nigerian Bulk SMS Directory — Platform Data & Shared Logic
 
+/** Direct link when user clicks a platform that has no affiliate link (once per day) */
+var POPUNDER_URL = "https://omg10.com/4/10744312";
+var POPUNDER_DATE_KEY = "sms-directory-omg10-date";
+
 const platforms = [
   {
     id: "ebulksms",
@@ -415,6 +419,7 @@ function renderFeaturedCard(p) {
     ? '<img src="' + logoUrl + '" alt="" class="featured-card-logo" width="64" height="64">'
     : '<span class="featured-card-icon-inner" aria-hidden="true">📱</span>';
   var featuredBadge = p.featured ? '<span class="featured-card-badge">⭐ Featured</span>' : '';
+  var signUpClass = "btn btn-accent" + (!p.affiliateLink ? " js-pop-under-cta" : "");
   wrap.innerHTML =
     '<article class="featured-card">' +
       '<div class="featured-card-icon">' + logoImg + '</div>' +
@@ -424,7 +429,7 @@ function renderFeaturedCard(p) {
         '</div>' +
         '<p class="featured-card-tagline">' + escapeHtml(tagline) + '</p>' +
         '<div class="featured-card-actions">' +
-          '<a href="' + link + '" target="_blank" rel="noopener" class="btn btn-accent">Sign Up Free →</a>' +
+          '<a href="' + escapeHtml(link) + '" target="_blank" rel="noopener" class="' + signUpClass + '">Sign Up Free →</a>' +
           '<a href="' + p.id + '.html" class="btn btn-outline">View Details</a>' +
         '</div>' +
       '</div>' +
@@ -813,6 +818,7 @@ function initQuiz() {
     cta.href = link;
     cta.textContent = p.affiliateLink ? "Get Started Free →" : "Visit Website →";
     if (link) cta.setAttribute("target", "_blank");
+    if (p.affiliateLink) cta.classList.remove("js-pop-under-cta"); else cta.classList.add("js-pop-under-cta");
     var detailsBtn = document.getElementById("quiz-result-details");
     if (detailsBtn) {
       detailsBtn.href = p.id + ".html";
@@ -916,4 +922,20 @@ document.addEventListener("DOMContentLoaded", function () {
   if (document.getElementById("quiz-container")) {
     initQuiz();
   }
+
+  // No-affiliate CTA: first click that day goes to direct link; same day again (even if they come back) goes to platform
+  document.addEventListener("click", function (e) {
+    var a = e.target && e.target.closest && e.target.closest("a.js-pop-under-cta");
+    if (!a) return;
+    e.preventDefault();
+    var today = new Date().toISOString().slice(0, 10);
+    var stored = null;
+    try { stored = localStorage.getItem(POPUNDER_DATE_KEY); } catch (err) {}
+    if (stored === today) {
+      window.location.href = a.href;
+    } else {
+      try { localStorage.setItem(POPUNDER_DATE_KEY, today); } catch (err) {}
+      window.location.href = POPUNDER_URL;
+    }
+  });
 });
