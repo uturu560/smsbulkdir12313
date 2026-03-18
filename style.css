@@ -263,9 +263,13 @@ img {
 }
 
 /* Hide nav links (Compare, Integrations, Blog) on mobile — keep only theme toggle */
+/* Exception: show Compare Prices on home page */
 @media (max-width: 600px) {
   .nav-links a {
     display: none;
+  }
+  .home-page .nav-links a.show-mobile {
+    display: inline;
   }
 }
 

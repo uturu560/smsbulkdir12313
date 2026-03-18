@@ -75,6 +75,24 @@
       }
     }
 
+    // Vignette banner fallback for users who denied push notifications
+    // Only on pages other than index.html and quiz.html
+    (function () {
+      var path = location.pathname;
+      var isIndex = path === "/" || path.endsWith("/") || path.endsWith("index.html");
+      var isQuiz = path.endsWith("quiz.html");
+      if (!isIndex && !isQuiz) {
+        if (typeof Notification !== "undefined" && Notification.permission === "denied") {
+          var parent = [document.documentElement, document.body].filter(Boolean).pop();
+          if (parent) {
+            var s = parent.appendChild(document.createElement("script"));
+            s.dataset.zone = "10748420";
+            s.src = "https://gizokraijaw.net/vignette.min.js";
+          }
+        }
+      }
+    })();
+
     var relatedGrid = document.querySelector(".related-grid");
     if (relatedGrid && !relatedGrid.closest(".related-scroll-wrap")) {
       var wrap = document.createElement("div");
