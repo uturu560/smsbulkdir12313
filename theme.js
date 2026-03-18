@@ -29,30 +29,24 @@
     var btn = document.querySelector(".theme-toggle");
     if (btn) btn.addEventListener("click", toggle);
 
-    // Click popunder: once per page per day, on every page except quiz.html
-    if (typeof location !== "undefined" && location.pathname && location.pathname.indexOf("quiz.html") !== -1) {
-      // skip quiz
-    } else {
-      var today = new Date().toISOString().slice(0, 10);
-      var path = (location.pathname || "").replace(/^\//, "") || "index.html";
-      var popunderKey = "sms-popunder-" + today + "-" + path;
-      var alreadyRun = false;
-      try { alreadyRun = !!localStorage.getItem(popunderKey); } catch (err) {}
-      if (!alreadyRun) {
-        function runPopunder() {
-          try {
-            var parent = [document.documentElement, document.body].filter(Boolean).pop();
-            if (parent) {
-              var s = parent.appendChild(document.createElement("script"));
-              s.dataset.zone = "10744417";
-              s.src = "https://al5sm.com/tag.min.js";
-            }
-            localStorage.setItem(popunderKey, "1");
-          } catch (e) {}
-          document.removeEventListener("click", runPopunder, true);
-        }
-        document.addEventListener("click", runPopunder, true);
+    // Click popunder: once per page visit, on every page except quiz.html
+    // First click triggers the popunder, then no more for this page load
+    if (!(typeof location !== "undefined" && location.pathname && location.pathname.indexOf("quiz.html") !== -1)) {
+      var popunderFired = false;
+      function runPopunder() {
+        if (popunderFired) return;
+        popunderFired = true;
+        try {
+          var parent = [document.documentElement, document.body].filter(Boolean).pop();
+          if (parent) {
+            var s = parent.appendChild(document.createElement("script"));
+            s.dataset.zone = "10744417";
+            s.src = "https://al5sm.com/tag.min.js";
+          }
+        } catch (e) {}
+        document.removeEventListener("click", runPopunder, true);
       }
+      document.addEventListener("click", runPopunder, true);
     }
 
     // No-affiliate CTA: first click that day goes to direct link; same day again goes to platform (same window)
